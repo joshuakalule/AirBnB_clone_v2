@@ -5,6 +5,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import models
+from models.place import Place
 
 
 class User(BaseModel, Base):
