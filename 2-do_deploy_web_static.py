@@ -44,7 +44,8 @@ if __name__ == "__main__":
             break
         else:
             print("The archive_path argument was not provided.")
-            return False
+            sys.exit(1)
+
     if do_deploy(archive_path):
         print("Deployment successful.")
     else:
