@@ -20,7 +20,7 @@ fi
 # function to check if file exists otherwise create file
 dir_exists() {
     if [ ! -d "$1" ]; then
-        mkdir "$1"
+        mkdir -p "$1"
     else
         echo "Directory '$1' already exists"
     fi
@@ -53,31 +53,15 @@ echo "\
 #+ if it doesn't exist
 sym_link="/data/web_static/current"
 linked_dir="/data/web_static/releases/test/"
-if [ -L "$sym_link" ]; then
-    rm "$sym_link"
+if [ -d "$sym_link" ]; then
+    rm -rf "$sym_link"
 fi
-ln -s "$linked_dir" "$sym_link"
+ln -sf "$linked_dir" "$sym_link"
 echo "symbolic link created"
 
 # give recursive ownership of /data/ to ubuntu and group
-chown -R ubuntu:ubuntu /data
+chown -R ubuntu:ubuntu /data/
 
-NGINX_CONFIG=\
-"server {
-        listen 80;
-        listen [::]:80;
-
-        server_name onepimeht.tech;
-
-        location /hbnb_static/ {
-                alias /data/web_static/current/;
-                try_files \$uri \$uri/ =404;
-        }
-}"
-
-bash -c "echo -e '$NGINX_CONFIG' > /etc/nginx/sites-enabled/hbnb_static"
-
-# enable the site and restart
-ln -s /etc/nginx/sites-available/hbnb_static /etc/nginx/sites-enabled/
+sudo sed -i '/listen 80 default_server/a location /hbnb_static { alias /data/web_static/current/;}' /etc/nginx/sites-enabled/default
 
 service nginx restart
