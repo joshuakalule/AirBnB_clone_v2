@@ -80,10 +80,4 @@ bash -c "echo -e '$NGINX_CONFIG' > /etc/nginx/sites-enabled/hbnb_static"
 # enable the site and restart
 ln -s /etc/nginx/sites-available/hbnb_static /etc/nginx/sites-enabled/
 
-# Check if the include line already exists in the existing configuration
-if ! grep -q "include $new_config;" "$existing_config"; then
-    # Add the include line to the existing configuration
-    echo "include $new_config;" | tee -a "$existing_config"
-fi
-
 service nginx restart
