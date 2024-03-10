@@ -19,7 +19,7 @@ def do_pack():
     now = datetime.now()
     formatted_now = now.strftime('%Y%m%d%H%M%S')
 
-    archive_name = f"{source_dir}_{formatted_now}.tgz"    
+    archive_name = f"{source_dir}_{formatted_now}.tgz"
     archive_path = os.path.join(target_dir, archive_name)
 
     command = f"tar -czvf {archive_path} {source_dir}/"
