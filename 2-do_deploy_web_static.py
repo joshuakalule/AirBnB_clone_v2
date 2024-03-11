@@ -38,7 +38,7 @@ def do_deploy(archive_path):
 
         run('sudo rm -rf /data/web_static/current')
 
-        run(f'sudo ln -s {release_path}{release_name}/ '
+        run(f'sudo ln -s {release_path}{release_name} '
             f'/data/web_static/current')
 
     except Exception as e:
