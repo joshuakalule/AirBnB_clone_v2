@@ -25,11 +25,16 @@ def do_deploy(archive_path):
     try:
         put(archive_path, '/tmp/')
 
-        run(f'sudo mkdir -p {release_path}{release_name}')
+        run(f'sudo mkdir -p {release_path}{release_name}/')
         run(f'sudo tar -xzf /tmp/{archive_name} -C '
             f'{release_path}{release_name}/')
 
         run(f'sudo rm /tmp/{archive_name}')
+
+        run(f'sudo mv {release_path}{release_name}/web_static/* '
+            f'{release_path}{release_name}/')
+
+        run(f'sudo rm -rf {release_path}{release_name}/web_static')
 
         run('sudo rm -rf /data/web_static/current')
 
