@@ -25,20 +25,20 @@ def do_deploy(archive_path):
     try:
         put(archive_path, '/tmp/')
 
-        run(f'mkdir -p {release_path}{release_name}/')
-        run(f'tar -xzf /tmp/{archive_name} -C '
+        run(f'sudo mkdir -p {release_path}{release_name}/')
+        run(f'sudo tar -xzf /tmp/{archive_name} -C '
             f'{release_path}{release_name}/')
 
-        run(f'rm /tmp/{archive_name}')
+        run(f'sudo rm /tmp/{archive_name}')
 
-        run(f'mv {release_path}{release_name}/web_static/* '
+        run(f'sudo mv {release_path}{release_name}/web_static/* '
             f'{release_path}{release_name}/')
 
-        run(f'rm -rf {release_path}{release_name}/web_static')
+        run(f'sudo rm -rf {release_path}{release_name}/web_static')
 
-        run('rm -rf /data/web_static/current')
+        run('sudo rm -rf /data/web_static/current')
 
-        run(f'ln -s {release_path}{release_name} '
+        run(f'sudo ln -s {release_path}{release_name} '
             f'/data/web_static/current')
 
     except Exception as e:

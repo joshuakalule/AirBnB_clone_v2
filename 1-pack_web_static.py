@@ -14,7 +14,7 @@ def do_pack():
     target_dir = 'versions'
 
     if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
+        local("mkdir -p versions")
 
     now = datetime.now()
     formatted_now = now.strftime('%Y%m%d%H%M%S')
