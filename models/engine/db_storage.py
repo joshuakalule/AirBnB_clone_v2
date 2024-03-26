@@ -70,7 +70,7 @@ class DBStorage:
         )
         NEWSession = scoped_session(self.__session)
         self.__session = NEWSession()
-    
+
     def close(self):
         """ Calls the remove function in db """
         self.__session.close()
