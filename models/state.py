@@ -18,8 +18,16 @@ class State(BaseModel, Base):
         cascade="all, delete, delete-orphan"
     )
 
+    """ @property
+    def cities(self):
+        # Getter method for cities property
+        return [city for city in models.storage.all(City).values()
+                if city.state_id == self.id] """
     @property
     def cities(self):
-        """Getter method for cities property"""
-        return [city for city in models.storage.all(City).values()
-                if city.state_id == self.id]
+        # Getter method for cities property
+        if models.storage != 'db':
+            return [city for city in models.storage.all(City).values()
+                    if city.state_id == self.id]
+        else:
+            return []
