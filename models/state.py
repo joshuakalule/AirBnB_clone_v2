@@ -25,8 +25,8 @@ class State(BaseModel, Base):
                 if city.state_id == self.id] """
     @property
     def cities(self):
-        # Getter method for cities property
-        if models.storage != 'db':
+        """ Getter method for cities property"""
+        if models.storage.__class__.__name__ != 'DBStorage':
             return [city for city in models.storage.all(City).values()
                     if city.state_id == self.id]
         else:
