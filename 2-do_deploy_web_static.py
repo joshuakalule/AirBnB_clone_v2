@@ -1,5 +1,7 @@
 #!/usr/bin/python3
-""" distributes an archive to your web servers, using the function do_deploy """
+"""
+distributes an archive to your web servers, using the function do_deploy
+"""
 from fabric.api import *
 import os
 
@@ -24,7 +26,8 @@ def do_deploy(archive_path):
 
     for server in env.hosts:
         try:
-            print(f"Uploading archive to {server}: /tmp/{os.path.basename(archive_path)}")
+            print("Uploading archive to {}: /tmp/{}"
+                  .format(server, os.path.basename(archive_path)))
             with settings(host_string=server):
                 put(archive_path, "/tmp/")
         except Exception as e:
