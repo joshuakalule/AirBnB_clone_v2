@@ -1,54 +1,56 @@
 #!/usr/bin/python3
-"""
-distributes an archive to your web servers, using the function do_deploy
+"""Compress web static package
 """
 from fabric.api import *
-import os
+from datetime import datetime
+from os import path
 
 
 env.hosts = ['100.26.213.55', '54.236.45.113']
-env.user = "ubuntu"
+env.user = 'ubuntu'
+env.key_filename = '~/.ssh/school'
 
 
 def do_deploy(archive_path):
+    """Deploy web files to server
     """
-    Deploys the provided archive to the web servers.
+    try:
+        if not (path.exists(archive_path)):
+            return False
 
-    Args:
-        archive_path (str): Path to the archive file.
+        # upload archive
+        put(archive_path, '/tmp/')
 
-    Returns:
-        bool: True if deployment is successful, False otherwise.
-    """
-    if not os.path.exists(archive_path):
-        print(f"Error: Archive file not found: {archive_path}")
+        # create target dir
+        timestamp = archive_path[-18:-4]
+        run('sudo mkdir -p /data/web_static/\
+releases/web_static_{}/'.format(timestamp))
+
+        # uncompress archive and delete .tgz
+        run('sudo tar -xzf /tmp/web_static_{}.tgz -C \
+/data/web_static/releases/web_static_{}/'
+            .format(timestamp, timestamp))
+
+        # remove archive
+        run('sudo rm /tmp/web_static_{}.tgz'.format(timestamp))
+
+        # move contents into host web_static
+        run('sudo mv /data/web_static/releases/web_static_{}/web_static/* \
+/data/web_static/releases/web_static_{}/'.format(timestamp, timestamp))
+
+        # remove extraneous web_static dir
+        run('sudo rm -rf /data/web_static/releases/\
+web_static_{}/web_static'
+            .format(timestamp))
+
+        # delete pre-existing sym link
+        run('sudo rm -rf /data/web_static/current')
+
+        # re-establish symbolic link
+        run('sudo ln -s /data/web_static/releases/\
+web_static_{}/ /data/web_static/current'.format(timestamp))
+    except:
         return False
 
-    for server in env.hosts:
-        try:
-            print("Uploading archive to {}: /tmp/{}"
-                  .format(server, os.path.basename(archive_path)))
-            with settings(host_string=server):
-                put(archive_path, "/tmp/")
-        except Exception as e:
-            print(f"Error uploading archive to {server}: {e}")
-            return False
-
-        try:
-            archive_filename = os.path.basename(archive_path)
-            extract_dir = f"/data/web_static/releases/{archive_filename[:-4]}"
-            with settings(host_string=server):
-                run(f"mkdir -p {extract_dir}")
-                run(f"tar -xzf /tmp/{archive_filename} -C {extract_dir}")
-
-                run(f"rm /tmp/{archive_filename}")
-
-                run(f"rm -rf /data/web_static/current")
-
-                run(f"ln -s {extract_dir} /data/web_static/current")
-                print(f"Successfully deployed to {server}")
-        except Exception as e:
-            print(f"Error deploying to {server}: {e}")
-            return False
-
+    # return True on success
     return True
