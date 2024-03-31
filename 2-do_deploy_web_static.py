@@ -25,16 +25,16 @@ def do_deploy(archive_path):
     for server in env.hosts:
         try:
             print(f"Uploading archive to {server}: /tmp/{os.path.basename(archive_path)}")
-            put(archive_path, "/tmp/")
+            with settings(host_string=server):
+                put(archive_path, "/tmp/")
         except Exception as e:
             print(f"Error uploading archive to {server}: {e}")
             return False
 
-    for server in env.hosts:
-        with settings(host_string=server):
-            try:
-                archive_filename = os.path.basename(archive_path)
-                extract_dir = f"/data/web_static/releases/{archive_filename[:-4]}"
+        try:
+            archive_filename = os.path.basename(archive_path)
+            extract_dir = f"/data/web_static/releases/{archive_filename[:-4]}"
+            with settings(host_string=server):
                 run(f"mkdir -p {extract_dir}")
                 run(f"tar -xzf /tmp/{archive_filename} -C {extract_dir}")
 
@@ -44,8 +44,8 @@ def do_deploy(archive_path):
 
                 run(f"ln -s {extract_dir} /data/web_static/current")
                 print(f"Successfully deployed to {server}")
-            except Exception as e:
-                print(f"Error deploying to {server}: {e}")
-                return False
+        except Exception as e:
+            print(f"Error deploying to {server}: {e}")
+            return False
 
     return True
