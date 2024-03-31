@@ -1,49 +1,51 @@
 #!/usr/bin/python3
-"""Deploy archive created to web-01 and web-02 servers"""
-from fabric.api import env, put, run
+""" distributes an archive to your web servers, using the function do_deploy """
+from fabric.api import *
 import os
 
+
 env.hosts = ['100.26.213.55', '54.236.45.113']
-env.user = 'ubuntu'
-env.key_filename = os.path.expanduser('~/.ssh/school')
+env.user = "ubuntu"
 
 
 def do_deploy(archive_path):
     """
-    Function to deploy archive.
+    Deploys the provided archive to the web servers.
 
-    Returns: False if archive_path does not exist.
+    Args:
+        archive_path (str): Path to the archive file.
+
+    Returns:
+        bool: True if deployment is successful, False otherwise.
     """
     if not os.path.exists(archive_path):
-        print(f"The file at the path {archive_path} does not exist.")
+        print(f"Error: Archive file not found: {archive_path}")
         return False
 
-    archive_name = os.path.basename(archive_path)
-    release_name = os.path.splitext(archive_name)[0]
-    release_path = f"/data/web_static/releases/"
+    for server in env.hosts:
+        try:
+            print(f"Uploading archive to {server}: /tmp/{os.path.basename(archive_path)}")
+            put(archive_path, "/tmp/")
+        except Exception as e:
+            print(f"Error uploading archive to {server}: {e}")
+            return False
 
-    try:
-        put(archive_path, '/tmp/')
+    for server in env.hosts:
+        with settings(host_string=server):
+            try:
+                archive_filename = os.path.basename(archive_path)
+                extract_dir = f"/data/web_static/releases/{archive_filename[:-4]}"
+                run(f"mkdir -p {extract_dir}")
+                run(f"tar -xzf /tmp/{archive_filename} -C {extract_dir}")
 
-        run(f'sudo mkdir -p {release_path}{release_name}/')
-        run(f'sudo tar -xzf /tmp/{archive_name} -C '
-            f'{release_path}{release_name}/')
+                run(f"rm /tmp/{archive_filename}")
 
-        run(f'sudo rm /tmp/{archive_name}')
+                run(f"rm -rf /data/web_static/current")
 
-        run(f'sudo mv {release_path}{release_name}/web_static/* '
-            f'{release_path}{release_name}/')
+                run(f"ln -s {extract_dir} /data/web_static/current")
+                print(f"Successfully deployed to {server}")
+            except Exception as e:
+                print(f"Error deploying to {server}: {e}")
+                return False
 
-        run(f'sudo rm -rf {release_path}{release_name}/web_static')
-
-        run('sudo rm -rf /data/web_static/current')
-
-        run(f'sudo ln -s {release_path}{release_name} '
-            f'/data/web_static/current')
-
-    except Exception as e:
-        print(f"An error occurred during deployment: {e}")
-        return False
-
-    print("New version deployed!")
     return True
