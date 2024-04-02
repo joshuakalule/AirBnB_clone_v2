@@ -3,4 +3,4 @@
 *.swp
 file.json
 template.html
-venv/
+venv/*
