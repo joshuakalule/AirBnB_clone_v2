@@ -1,42 +1,34 @@
 #!/usr/bin/python3
 """
-script that generates a .tgz archive from the contents of web_static/
+Script that generates a .tgz archive from the contents of web_static/
 
 """
 from fabric.api import *
-from datetime import datetime
-import os
+from pathlib import Path
+import datetime
 
 
 def do_pack():
     """ generate archive file (.tgz)"""
     source_dir = 'web_static'
-    target_dir = 'versions'
+    dest_dir = 'versions'
 
-    if not os.path.exists(target_dir):
-        local("mkdir -p versions")
+    if not Path(dest_dir).exists():
+        local("mkdir versions", capture=True)
 
-    now = datetime.now()
-    formatted_now = now.strftime('%Y%m%d%H%M%S')
+    now = datetime.datetime.now()
+    suffix = now.strftime('%Y%m%d%H%M%S')
+    archive_path = Path(dest_dir) / Path(f"{source_dir}_{suffix}.tgz")
 
-    archive_name = f"{source_dir}_{formatted_now}.tgz"
-    archive_path = os.path.join(target_dir, archive_name)
-
-    command = f"tar -czvf {archive_path} {source_dir}/"
-
+    command = f"tar -czvf {archive_path} {source_dir}"
     print(f"Packing web_static to {archive_path}")
     result = local(command, capture=False)
 
     if result.succeeded:
-        mode_cmd = f"chmod 664 {archive_path}"
-        mode_result = local(mode_cmd, capture=True)
-        os_path = os.path.getsize(archive_path)
-        print(
-            f"web_static packed: {archive_path} -> {os_path}Bytes")
+        size = archive_path.stat().st_size
+        print(f"web_static packed: {archive_path} -> {size}Bytes")
         return archive_path
-    else:
-        print("Failed to create the archive.")
-        return None
+    return None
 
 
 if __name__ == "__main__":
