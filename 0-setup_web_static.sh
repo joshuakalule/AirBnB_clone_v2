@@ -1,67 +1,59 @@
 #!/usr/bin/env bash
-# install nginx and add new server block to the configuration
+# sets up your web servers for the deployment of web_static
 
-# check and install if nginx does not exist
-if ! command -v nginx &> /dev/null; then
-    echo "NGINX not installed. Installing now.."
-
-    # installation of nginx
+# ensure ngnix is installed
+if ! command nginx -v &> /dev/null; then
     apt-get -y update
     apt-get -y install nginx
-    ufw allow 'Nginx HTTP'
-    echo 'Hello World!' > /var/www/html/index.nginx-debian.html
-    service nginx start
-
-    echo "NGINX installation successfull"
-else
-    echo "NGINX already installed"
 fi
 
-# function to check if file exists otherwise create file
-dir_exists() {
-    if [ ! -d "$1" ]; then
-        mkdir -p "$1"
-    else
-        echo "Directory '$1' already exists"
-    fi
-}
-
-# files to check existence otherwise create
-dirs=(
+# ensure presence of these directories
+declare -a DIRS=(
     "/data/"
     "/data/web_static/"
     "/data/web_static/releases/"
     "/data/web_static/shared/"
     "/data/web_static/releases/test/"
 )
-
-for dir in "${dirs[@]}"; do
-    dir_exists "$dir"
+for dir in "${DIRS[@]}"; do
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir"
+    fi
 done
 
-# put simple text into index.html for testing
-echo "\
-<html>
-  <head>
-  </head>
-  <body>
-    Holberton School
-  </body>
-</html>" > /data/web_static/releases/test/index.html
+# create fake html file to test ngnix install
+echo "Nginx installed successfully!" > /data/web_static/releases/test/index.html
 
-# create symbolic link to folder /data/web_static/releases/test/
-#+ if it doesn't exist
-sym_link="/data/web_static/current"
-linked_dir="/data/web_static/releases/test/"
-if [ -d "$sym_link" ]; then
-    rm -rf "$sym_link"
-fi
-ln -sf "$linked_dir" "$sym_link"
-echo "symbolic link created"
+# ensure symbolic link is up-to date
+ln -sf "/data/web_static/releases/test/" "/data/web_static/current"
 
-# give recursive ownership of /data/ to ubuntu and group
-chown -hR ubuntu:ubuntu /data/
+# set ownership
+chown --recursive --no-dereference ubuntu:ubuntu /data/
 
-sudo sed -i '/listen 80 default_server/a location /hbnb_static { alias /data/web_static/current/;}' /etc/nginx/sites-available/default
-
+# Update Nginx config to serve content of /data/web_static/current/ to
+# hbnb_static
+# Desccription: ensures this location block is added within the server block 
+# but before the first location block
+TMP_FILE_PATH="/tmp/tmp_file"
+CONFIG_FILE="/etc/nginx/sites-available/default"
+echo "" > "$TMP_FILE_PATH"
+TRIGGER=0
+ENTRY="
+    location /hbnb_static {
+        alias /data/web_static/current/;
+    }"
+while IFS= read -r line; do
+	if [[ "$line" =~ [[:space:]]*server[[:space:]]+\{ && "$TRIGGER" == 0 ]]; then
+		TRIGGER=1
+	fi
+	
+	if [[ "$TRIGGER" == 1 && "$line" =~ [[:space:]]*location ]]; then
+		echo -e "$ENTRY\n$line" >> "$TMP_FILE_PATH"
+		TRIGGER=-1
+	else
+		echo "$line" >> "$TMP_FILE_PATH"
+	fi
+done < "$CONFIG_FILE"
+cat "$TMP_FILE_PATH" > "$CONFIG_FILE"
+#restart nginx
 service nginx restart
