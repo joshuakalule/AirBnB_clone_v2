@@ -5,6 +5,7 @@ import os
 
 env.hosts = ['52.206.61.240', '54.144.158.52']
 
+
 def do_deploy(archive_path):
     """deploy tarball on server"""
     a_list = archive_path.split("/")
