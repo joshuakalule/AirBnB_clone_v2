@@ -4,45 +4,31 @@ from fabric.api import env, put, run
 import os
 
 env.hosts = ['52.206.61.240', '54.144.158.52']
-env.user = 'ubuntu'
 env.key_filename = os.path.expanduser('~/.ssh/server_rsa')
 
 
 def do_deploy(archive_path):
-    """
-    Function to deploy archive.
-
-    Returns: False if archive_path does not exist.
-    """
-    if not os.path.exists(archive_path):
-        print(f"The file at the path {archive_path} does not exist.")
+    """deploy tarball on server"""
+    a_list = archive_path.split("/")
+    filename = a_list[-1]
+    extension_list = filename.split(".")
+    no_extension = extension_list[0]
+    exists = os.path.isfile('{}'.format(archive_path))
+    if not exists:
         return False
-
-    archive_name = os.path.basename(archive_path)
-    release_name = os.path.splitext(archive_name)[0]
-    release_path = f"/data/web_static/releases/"
-
     try:
-        put(archive_path, '/tmp/')
-
-        run(f'sudo mkdir -p {release_path}{release_name}/')
-        run(f'sudo tar -xzf /tmp/{archive_name} -C '
-            f'{release_path}{release_name}/')
-
-        run(f'sudo rm /tmp/{archive_name}')
-
-        run(f'sudo mv {release_path}{release_name}/web_static/* '
-            f'{release_path}{release_name}/')
-
-        run(f'sudo rm -rf {release_path}{release_name}/web_static')
-
-        run('sudo rm -rf /data/web_static/current')
-
-        run(f'sudo ln -sf {release_path}{release_name} '
-            f'/data/web_static/current')
-        print("New version deployed!")
+        put(archive_path, "/tmp/")
+        run("rm -rf /data/web_static/releases/")
+        run("mkdir -p /data/web_static/releases/" + no_extension)
+        run("tar xzf /tmp/" + filename + " -C " +
+            "/data/web_static/releases/" + no_extension)
+        run("rm -f /tmp/" + filename)
+        run("unlink /data/web_static/current")
+        run("ln -s /data/web_static/releases/" + no_extension +
+            " /data/web_static/current")
+        run("mv -f /data/web_static/releases/" +
+            no_extension + "/web_static/* /data/web_static/releases/" +
+            no_extension)
         return True
-
-    except Exception as e:
-        print(f"An error occurred during deployment: {e}")
+    except Exception:
         return False
