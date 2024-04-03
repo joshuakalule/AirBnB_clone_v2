@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 """Distribute archive created to web-01 and web-02 servers"""
-from fabric.api import env, put, run
+from fabric.api import env, put, run, env, hosts
 import os
 
 env.hosts = ['52.206.61.240', '54.144.158.52']
-env.key_filename = os.path.expanduser('~/.ssh/server_rsa')
-
 
 def do_deploy(archive_path):
     """deploy tarball on server"""
