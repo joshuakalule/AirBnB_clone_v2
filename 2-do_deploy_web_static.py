@@ -3,6 +3,7 @@
 from fabric.api import run, local, put, env
 from pathlib import Path
 
+
 env.hosts = ['100.26.17.58', '35.168.8.71']
 
 
@@ -33,8 +34,7 @@ def do_deploy(archive_path):
         run(f"sudo ln -sf {dest_folder} {current_path}")
 
         print("New version deployed!")
-        return True
     except Exception as e:
-        print("Error: {}".format(e))
+        return False
 
-    return False
+    return True
