@@ -5,9 +5,7 @@ from datetime import datetime
 import os
 
 
-env.hosts = ['100.26.213.55', '54.236.45.113']
-env.user = 'ubuntu'
-env.key_filename = os.path.expanduser('~/.ssh/school')
+env.hosts = ['100.26.17.58', '35.168.8.71']
 
 
 def deploy():
