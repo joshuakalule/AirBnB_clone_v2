@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from models.base_model import BaseModel, Base
 import models
 from models.city import City
+from os import getenv
 
 
 class State(BaseModel, Base):
@@ -18,8 +19,13 @@ class State(BaseModel, Base):
         cascade="all, delete, delete-orphan"
     )
 
-    @property
-    def cities(self):
-        """ Getter method for cities property """
-        return [city for city in models.storage.all(City).values()
-                if city.state_id == self.id]
+    if getenv('HBNB_TYPE_STORAGE') == 'db':
+        @property
+        def cities(self):
+            """getter for list of city instances related to the state"""
+            city_list = []
+            all_cities = models.storage.all(City)
+            for city in all_cities.values():
+                if city.state_id == self.id:
+                    city_list.append(city)
+            return city_list
