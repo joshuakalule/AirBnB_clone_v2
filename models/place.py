@@ -46,7 +46,7 @@ class Place(BaseModel, Base):
             cascade="all, delete, delete-orphan"
         )
 
-    if os.getenv('HBNB_TYPE_STORAGE') == 'file':
+    if os.getenv('HBNB_TYPE_STORAGE') == 'fs':
         @property
         def reviews(self):
             """

@@ -19,7 +19,7 @@ class State(BaseModel, Base):
         cascade="all, delete, delete-orphan"
     )
 
-    if getenv('HBNB_TYPE_STORAGE') == 'db':
+    if getenv("HBNB_TYPE_STORAGE") != 'db':
         @property
         def cities(self):
             """getter for list of city instances related to the state"""
