@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 import models
 import os
 
-
+'''
 place_amenity = Table(
     "place_amenity",
     Base.metadata,
@@ -18,7 +18,7 @@ place_amenity = Table(
     Column("amenity_id", String(60), ForeignKey("amenities.id"),
            primary_key=True, nullable=False)
 )
-
+'''
 
 class Place(BaseModel, Base):
     """ A place to stay """
@@ -34,12 +34,15 @@ class Place(BaseModel, Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     amenity_ids = []
+    
     if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+        '''
         amenities = relationship(
             "Amenity",
             secondary="place_amenity",
             viewonly=False
         )
+        '''
         reviews = relationship(
             "Review",
             backref="place",
